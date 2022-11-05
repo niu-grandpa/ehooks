@@ -3,6 +3,13 @@ import { CallbackWithNoArguments } from "../types/types";
 import { useDidMount } from "./useDidMount";
 import { useWillUnmount } from "./useWillUnmount";
 
+/**
+ * useDidUpdate
+ * @description 组件更新时执行。也可以增加更新依赖项，当依赖变化时自动执行更新。
+ *
+ * @param {Function} update 执行的更新函数
+ * @param {Array|undefined} conditions 更新依赖项
+ */
 export function useDidUpdate(
   update: CallbackWithNoArguments,
   conditions?: React.DependencyList
