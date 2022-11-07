@@ -3,7 +3,7 @@ import { CallbackWithArguments } from "../types/types";
 
 type OnRegisterEvents = (name: string, callback: CallbackWithArguments) => void;
 type OnTriggerEvents = (name: string | string[], msg?: unknown) => void;
-type UseEventBus = [OnRegisterEvents, OnTriggerEvents];
+type UseEventBus = Partial<{ on: OnRegisterEvents; emit: OnTriggerEvents }>;
 type EventStack = Set<CallbackWithArguments>;
 
 /**
@@ -12,13 +12,13 @@ type EventStack = Set<CallbackWithArguments>;
  *
  * @example
  * ```ts
- *  const [myListen, setMyListenRun] = useEventBus();
- *  myListen("A", (msg: any) => {
- *    console.log('接收 setMyListenRun 的参数' + msg);
+ *  const { myEvent, triggerEvent } = useEventBus();
+ *  myEvent("A", (msg: any) => {
+ *    console.log('接收 triggerEvent 的参数' + msg);
  *  });
- *  setMyListenRun("A", "参数：发送给A事件");
- *  // setMyListenRun([], "发送给所有注册的事件");
- *  // setMyListenRun(["A", "B", "C"], "发送给多个事件");
+ *  triggerEvent("A", "参数：发送给A事件");
+ *  // triggerEvent([], "发送给所有注册的事件");
+ *  // triggerEvent(["A", "B", "C"], "发送给多个事件");
  * ```
  * @returns {UseEventBus}
  */
@@ -45,7 +45,7 @@ export function useEventBus(): UseEventBus {
         if (!name.length) {
           bus.forEach((events) => runTheEvents(events, msg));
         } else {
-          name.forEach((n) => runTheEvents(bus.get(n)));
+          name.forEach((n) => runTheEvents(bus.get(n)), msg);
         }
       }
     },
@@ -57,6 +57,6 @@ export function useEventBus(): UseEventBus {
     events.forEach((event) => event(args));
   };
 
-  const returnVal = useMemo<UseEventBus>(() => [on, emit], [on, emit]);
+  const returnVal = useMemo<UseEventBus>(() => ({ on, emit }), [on, emit]);
   return returnVal;
 }
