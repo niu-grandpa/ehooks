@@ -1,44 +1,59 @@
+import { noop } from "@/../utils";
 import { useCallback, useRef } from "react";
-import { CallbackWithNoArguments } from "../types/types";
+import { CallbackWithArguments, UnknownFunction } from "../types/types";
 import { useDidMount } from "./useDidMount";
 import { useWillUnmount } from "./useWillUnmount";
 
 /**
  * useThrottle
  *
- * @description 在n秒后执行事件函数，稀释函数执行频率。
+ * @description 函数节流。在n秒后执行事件函数，稀释函数执行频率。
+ *
+ * ```ts
+ * const fn = useThrottle((a, b) => { console.log(a + b); }, 200);
+ * setInterval(() => { fn(1, 2); }, 200);
+ * ```
  */
-export function useThrottle(callback: CallbackWithNoArguments, wait?: number) {
+export function useThrottle<T extends CallbackWithArguments>(
+  this: any,
+  callback: T,
+  wait?: number
+) {
+  const that = useRef<any>(this);
   const timerId = useRef<NodeJS.Timeout | null>(null);
-  const fn = useRef<CallbackWithNoArguments | null>(callback);
+  const throttleFn = useRef<UnknownFunction | null>(null);
 
   if (typeof callback !== "function") {
     throw TypeError("expected is a function!");
   }
 
-  // TODO arguments和调用this指向
-  const throttleFn = useCallback(() => {
-    if (timerId.current) return;
-    timerId.current = setTimeout(() => {
-      clearTimer(timerId.current);
-      callback();
-    }, wait || 200);
+  const declareThrottleFn = () => {
+    throttleFn.current = useCallback(
+      function () {
+        if (timerId.current) return;
+        const args = arguments;
+        timerId.current = setTimeout(() => {
+          clearTimer();
+          callback.apply(that.current, args);
+        }, wait || 200);
+      },
+      [timerId.current]
+    );
+  };
+
+  const clearTimer = useCallback(() => {
+    if (!timerId.current) return;
+    clearTimeout(timerId.current as unknown as number);
+    timerId.current = null;
   }, [timerId.current]);
 
-  useDidMount(() => {
-    fn.current = throttleFn;
-  });
+  useDidMount(declareThrottleFn);
 
   useWillUnmount(() => {
-    clearTimer(timerId.current);
-    fn.current = null;
+    that.current = null;
+    throttleFn.current = null;
+    clearTimer();
   });
 
-  return fn.current;
+  return throttleFn.current || noop;
 }
-
-export const clearTimer = (timerId: NodeJS.Timeout | null) => {
-  if (!timerId) return;
-  clearTimeout(timerId);
-  timerId = null;
-};
