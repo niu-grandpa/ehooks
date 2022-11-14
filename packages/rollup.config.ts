@@ -18,7 +18,7 @@ const commonPlugins = [
   sourceMaps(),
   json(),
   babel({
-    exclude: ["node_modules/**", "../../node_modules/**"],
+    exclude: ["node_modules/**"],
     plugins: ["@babel/plugin-external-helpers"],
   }),
   commonjs({
