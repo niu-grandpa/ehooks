@@ -40,5 +40,5 @@
     "skipLibCheck": true
   },
   "exclude": ["node_modules", "dist", "build"],
-  "include": ["./**/*.(ts|tsx)", "./package.json"]
+  "include": ["./**/*.ts", "./**/*.tsx", "./package.json"]
 }
