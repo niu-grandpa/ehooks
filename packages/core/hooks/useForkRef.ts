@@ -28,10 +28,13 @@ export function useForkRef<T>(
   refB: PossibleRef<T>
 ): RefCallback<T> | null {
   const returnVal = useMemo(
-    () => (value: T) => {
-      setRefVal(refA, value);
-      setRefVal(refB, value);
-    },
+    () =>
+      refA === null && refB === null
+        ? null
+        : (value: T) => {
+            setRefVal(refA, value);
+            setRefVal(refB, value);
+          },
     [refA, refB]
   );
 
