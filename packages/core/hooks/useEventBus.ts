@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { CallbackWithArguments } from "../types/types";
+import { CallbackWithArguments } from "../types";
 
 type OnRegisterEvents = (
   eventName: string,

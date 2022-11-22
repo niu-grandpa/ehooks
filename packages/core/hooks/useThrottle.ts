@@ -1,6 +1,6 @@
 import { noop } from "@/../utils";
 import { useCallback, useRef } from "react";
-import { CallbackWithArguments, UnknownFunction } from "../types/types";
+import { CallbackWithArguments, UnknownFunction } from "../types";
 import { useDidMount } from "./useDidMount";
 import { useWillUnmount } from "./useWillUnmount";
 

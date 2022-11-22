@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { CallbackWithNoArguments } from "../types/types";
+import { CallbackWithNoArguments } from "../types";
 import { useDidMount } from "./useDidMount";
 import { useWillUnmount } from "./useWillUnmount";
 

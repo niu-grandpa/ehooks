@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { CallbackWithNoArguments } from "../types/types";
+import { CallbackWithNoArguments } from "../types";
 
 /**
  * useDidMount
