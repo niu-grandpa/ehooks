@@ -58,9 +58,17 @@ export function useSimpleRouter() {
     const onClick = useCallback((e: MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
+
+      if (!props.to) {
+        console.error(
+          '[useSimpleRouter warn]: The <Link /> component must be set props "to"'
+        );
+        return;
+      }
+
       matchComponent(props.to);
     }, []);
-    return <a onClick={onClick}>{props?.children}</a>;
+    return <a {...{ onClick }}>{props?.children}</a>;
   });
 
   const Navigate = memo((props: NavigateProps) => {
@@ -77,7 +85,13 @@ export function useSimpleRouter() {
 
   const onHashChange = useCallback(() => {}, [routes]);
 
-  const matchComponent = useCallback((target: string) => {}, [routes]);
+  const matchComponent = useCallback(
+    (target: string) => {
+      if (!(target in routes.current)) return;
+      const { component } = routes.current[target];
+    },
+    [routes]
+  );
 
   const returnVal = useMemo(
     () => ({ Routes, Route, Link, Navigate }),
