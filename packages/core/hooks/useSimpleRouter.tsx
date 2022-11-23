@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, memo } from "react";
+import React, { useCallback, useMemo, memo, useRef, MouseEvent } from "react";
 import { ReactElm } from "../types";
 import { useDidMount } from "./useDidMount";
 import { useWillUnmount } from "./useWillUnmount";
@@ -8,14 +8,16 @@ interface RoutesProps {
   children?: ReactElm;
 }
 
-interface RouteProps {
-  path?: string;
-  /**是否为设置为首页 */
+interface RouteOptions {
   index?: boolean;
   replace?: boolean;
   component?: ReactElm;
   /**指定匹配时是否区分大小写 */
   caseSensitive?: boolean;
+}
+
+interface RouteProps extends RouteOptions {
+  path: string;
 }
 
 interface NavigateProps {
@@ -27,21 +29,38 @@ interface NavigateProps {
 interface LinkProps {
   to: string;
   state?: Record<string, unknown>;
+  children?: ReactElm;
 }
 
+type RoutesMap = Record<string, RouteOptions>;
+
 export function useSimpleRouter() {
-  const onHashChange = useCallback(() => {}, []);
+  const routes = useRef<RoutesMap>({});
 
   const Routes = memo((props: RoutesProps) => {
     return <></>;
   });
 
   const Route = memo((props: RouteProps) => {
+    const { path, index, replace, component, caseSensitive } = props;
+    if (typeof path === "string") {
+      routes.current[path] = {
+        index,
+        replace,
+        component,
+        caseSensitive,
+      };
+    }
     return <></>;
   });
 
   const Link = memo((props: LinkProps) => {
-    return <></>;
+    const onClick = useCallback((e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      matchComponent(props.to);
+    }, []);
+    return <a onClick={onClick}>{props?.children}</a>;
   });
 
   const Navigate = memo((props: NavigateProps) => {
@@ -56,8 +75,14 @@ export function useSimpleRouter() {
     window.removeEventListener("hashchange", onHashChange);
   });
 
-  return useMemo(
+  const onHashChange = useCallback(() => {}, [routes]);
+
+  const matchComponent = useCallback((target: string) => {}, [routes]);
+
+  const returnVal = useMemo(
     () => ({ Routes, Route, Link, Navigate }),
     [Routes, Route, Link, Navigate]
   );
+
+  return returnVal;
 }
