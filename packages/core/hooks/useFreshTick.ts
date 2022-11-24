@@ -8,7 +8,9 @@ import { useFreshRef } from "./useFreshRef";
  * @param callback 组件挂载时调用
  * @returns 返回一个新的回调函数
  */
-export function useFreshTick<T>(callback: CallbackWithArguments<T>) {
+export function useFreshTick<T>(
+  callback: CallbackWithArguments<T>
+): CallbackWithArguments<T> {
   const callbackRef = useFreshRef(callback);
   const tick = (...args: T[]) => {
     if (typeof callbackRef.current !== "function") return;
