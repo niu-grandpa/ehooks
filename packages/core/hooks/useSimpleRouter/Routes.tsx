@@ -1,11 +1,12 @@
-/* eslint-disable no-restricted-globals */
-import React from "react";
-import { isValidElement, ReactNode, useCallback, useMemo, useRef } from "react";
-import { memo } from "react";
-import { useFreshRef } from "../useFreshRef";
+import { isValidElement, ReactNode, useCallback, useMemo } from "react";
+import React, { memo } from "react";
 import { RouteProps } from "./Route";
+import { type RouteMap, routeMap, getLocation } from "./common";
+import { useFreshRef } from "../useFreshRef";
+import { useDidUpdate } from "../useDidUpdate";
 
 type RoutesProps = {
+  /**使用hash或history路由，区别在于地址栏是否带 '#' */
   type?: "hash" | "history";
   children: RoutesNode;
 };
@@ -16,7 +17,7 @@ type RoutesNodeProps = {
   props: RouteProps;
 };
 
-type RouteMap = Record<string, RouteProps>;
+export const __routeMap = routeMap();
 
 export const Routes = memo(({ type, children }: RoutesProps) => {
   if (typeof children === "undefined") {
@@ -31,6 +32,10 @@ export const Routes = memo(({ type, children }: RoutesProps) => {
     if (!type) return "hash";
     return type === "history" ? "pathname" : type;
   }, [type]);
+
+  useDidUpdate(() => {
+    __routeMap.type = routeType;
+  }, [routeType]);
 
   const matchRouteComponent = useCallback(() => {
     const location = getLocation(routeType);
@@ -50,37 +55,28 @@ const collectRoute = (_nodes: RoutesNode): RouteMap => {
   const nodes = Array.isArray(_nodes) ? _nodes : [_nodes];
 
   const iterators = (node: RoutesNodeProps) => {
-    const { path, component, index, replace, caseSensitive } = node.props;
+    const { path, component, index, replace, title, caseSensitive } =
+      node.props;
 
     if (!validProps(path, component)) return;
 
     routes[path] = {
-      index: index || false,
       path,
+      title,
       component,
+      index: index || false,
       replace: replace || false,
       caseSensitive: caseSensitive || false,
     };
   };
 
   nodes.forEach(iterators);
+  __routeMap.collect(routes);
 
   return routes;
 };
 
-const getLocation = (type: "pathname" | "hash") => {
-  return location[type];
-};
-
 const onPopStateChange = () => {};
-
-const pushState = (data: unknown, title: string, url?: string) => {
-  history.pushState(data, title, url);
-};
-
-const replaceState = (data: unknown, title: string, url?: string) => {
-  history.replaceState(data, title, url);
-};
 
 const validProps = (path: string, component: ReactNode) => {
   if (path && typeof path !== "string") {
