@@ -30,9 +30,16 @@ export const getLocation = (type: 'pathname' | 'hash') => {
 };
 
 export const checkLocation = {
-  isMatched(to: string, target: string) {
+  isMatchedLocation(to: string, target: string) {
     if (to !== target) {
-      console.warn(`[useSimpleRouter] No routes matched location "${target}"`);
+      console.warn(`[useSimpleRouter] The destination location does not exist "${target}"`);
+      return false;
+    }
+    return true;
+  },
+  isMatchedRoute(path: string, obj: RouteMap) {
+    if (!(path in obj)) {
+      console.warn(`[useSimpleRouter] No routes matched location "${path}"`);
       return false;
     }
     return true;

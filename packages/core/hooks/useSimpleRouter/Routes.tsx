@@ -1,9 +1,15 @@
-import { isValidElement, ReactNode, useCallback, useMemo } from "react";
+import {
+  isValidElement,
+  ReactNode,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import React, { memo } from "react";
 import { RouteProps } from "./Route";
-import { type RouteMap, routeMap, getLocation } from "./common";
+import { type RouteMap, routeMap, getLocation, checkLocation } from "./common";
 import { useDidMount } from "../useDidMount";
-import { useFreshRef } from "../useFreshRef";
 
 type RoutesProps = {
   hash?: boolean;
@@ -18,11 +24,15 @@ type RoutesNodeProps = {
 };
 
 export const __routeMap = routeMap();
+const { isCorrect, isMatchedRoute } = checkLocation;
 
 export const Routes = memo(({ hash, history, children }: RoutesProps) => {
   isHasChildren(children);
 
-  const routeMap = useFreshRef<RouteMap>(collectRoute(children));
+  // useFreshRef
+  const routeMap = useRef<RouteMap>(collectRoute(children));
+  const [showComponent, setComponent] = useState<ReactNode>(null);
+
   const routeType = useMemo(() => {
     if (!hash && !history) return "hash";
     return history ? "pathname" : "hash";
@@ -32,17 +42,17 @@ export const Routes = memo(({ hash, history, children }: RoutesProps) => {
     __routeMap.type = routeType;
   });
 
-  const matchRouteComponent = useCallback(() => {
-    const location = getLocation(routeType);
-    return () => routeMap.current[location]?.component;
-  }, [routeType, routeMap]);
-
-  const currentComponent = useMemo(
-    () => matchRouteComponent(),
-    [matchRouteComponent]
+  const matchRoutes = useCallback(
+    (current = "") => {
+      const location = current || getLocation(routeType);
+      if (!isCorrect(location) || !isMatchedRoute(location, routeMap.current))
+        return;
+      return routeMap.current[location]?.component;
+    },
+    [routeType, routeMap]
   );
 
-  return <>{currentComponent()}</>;
+  return <>{showComponent}</>;
 });
 
 const collectRoute = (_nodes: RoutesNode): RouteMap => {
@@ -70,8 +80,6 @@ const collectRoute = (_nodes: RoutesNode): RouteMap => {
 
   return routes;
 };
-
-const onPopStateChange = () => {};
 
 const isHasChildren = (children: RoutesNode) => {
   if (typeof children === "undefined") {
