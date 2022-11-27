@@ -2,12 +2,12 @@ import { isValidElement, ReactNode, useCallback, useMemo } from "react";
 import React, { memo } from "react";
 import { RouteProps } from "./Route";
 import { type RouteMap, routeMap, getLocation } from "./common";
+import { useDidMount } from "../useDidMount";
 import { useFreshRef } from "../useFreshRef";
-import { useDidUpdate } from "../useDidUpdate";
 
 type RoutesProps = {
-  /**使用hash或history路由，区别在于地址栏是否带 '#' */
-  type?: "hash" | "history";
+  hash?: boolean;
+  history?: boolean;
   children: RoutesNode;
 };
 
@@ -19,23 +19,18 @@ type RoutesNodeProps = {
 
 export const __routeMap = routeMap();
 
-export const Routes = memo(({ type, children }: RoutesProps) => {
-  if (typeof children === "undefined") {
-    throw Error(
-      "[useSimpleRouter] The Routes component must have children, like <Routes><Route /></Routes>"
-    );
-  }
+export const Routes = memo(({ hash, history, children }: RoutesProps) => {
+  isHasChildren(children);
 
   const routeMap = useFreshRef<RouteMap>(collectRoute(children));
-
   const routeType = useMemo(() => {
-    if (!type) return "hash";
-    return type === "history" ? "pathname" : type;
-  }, [type]);
+    if (!hash && !history) return "hash";
+    return history ? "pathname" : "hash";
+  }, [hash, history]);
 
-  useDidUpdate(() => {
+  useDidMount(() => {
     __routeMap.type = routeType;
-  }, [routeType]);
+  });
 
   const matchRouteComponent = useCallback(() => {
     const location = getLocation(routeType);
@@ -78,8 +73,20 @@ const collectRoute = (_nodes: RoutesNode): RouteMap => {
 
 const onPopStateChange = () => {};
 
+const isHasChildren = (children: RoutesNode) => {
+  if (typeof children === "undefined") {
+    throw Error(
+      "[useSimpleRouter] The Routes component must have children, like <Routes><Route /></Routes>"
+    );
+  }
+};
+
 const validProps = (path: string, component: ReactNode) => {
-  if (path && typeof path !== "string") {
+  if (!path) {
+    console.error("[useSimpleRouter] <Route />, need path props");
+    return false;
+  }
+  if (typeof path !== "string") {
     console.error(
       '[useSimpleRouter] <Route />, the props type of "path" must be string '
     );

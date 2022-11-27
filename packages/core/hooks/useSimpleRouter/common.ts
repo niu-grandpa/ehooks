@@ -1,15 +1,16 @@
-import { RouteProps } from "./Route";
+/* eslint-disable no-restricted-globals */
+import { RouteProps } from './Route';
 
 export type RouteMap = Record<string, RouteProps>;
 
 export const routeMap = () => ({
   get: {},
-  type: "hash",
+  type: 'hash',
   get map() {
     return this.get as RouteMap;
   },
   get isHash() {
-    return this.type === "hash";
+    return this.type === 'hash';
   },
   collect(obj: RouteMap) {
     this.get = Object.assign({}, obj);
@@ -24,10 +25,28 @@ export const replaceState = (data: unknown, title: string, url?: string) => {
   history.replaceState(data, title, url);
 };
 
-export const getLocation = (type: "pathname" | "hash") => {
+export const getLocation = (type: 'pathname' | 'hash') => {
   return location[type];
 };
 
-export const checkLocation = () => {
-  //
+export const checkLocation = {
+  isMatched(to: string, target: string) {
+    if (to !== target) {
+      console.warn(`[useSimpleRouter] No routes matched location "${target}"`);
+      return false;
+    }
+    return true;
+  },
+  isCorrect(path: string) {
+    if (!path.startsWith('/')) {
+      console.warn(`[useSimpleRouter] The location must be preceded by a "/", example "/${path}"`);
+      return false;
+    }
+    return true;
+  },
+};
+
+export const normalizeLocation = (isHash: boolean, path: string) => {
+  const url = path.split('');
+  return isHash ? url.splice(1, 0, '#') && url.join('') : path;
 };

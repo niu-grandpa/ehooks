@@ -1,6 +1,5 @@
-import React from "react";
-import { ReactNode } from "react";
-import { memo } from "react";
+import { ReactNode } from 'react';
+import { memo } from 'react';
 
 export type RouteProps = {
   /**路由地址 */
