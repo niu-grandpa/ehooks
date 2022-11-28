@@ -2,13 +2,22 @@ import {
   isValidElement,
   ReactNode,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
 import React, { memo } from "react";
 import { RouteProps } from "./Route";
-import { type RouteMap, routeMap, getLocation, checkLocation } from "./common";
+import {
+  type RouteMap,
+  routeMap,
+  getLocation,
+  checkLocation,
+  replaceState,
+  pushState,
+  setLocation,
+} from "./common";
 import { useDidMount } from "../useDidMount";
 
 type RoutesProps = {
@@ -24,13 +33,12 @@ type RoutesNodeProps = {
 };
 
 export const __routeMap = routeMap();
-const { isCorrect, isMatchedRoute } = checkLocation;
+const { isCorrect, isMatchedRoute, isCaseSensitive } = checkLocation;
 
 export const Routes = memo(({ hash, history, children }: RoutesProps) => {
   isHasChildren(children);
 
-  // useFreshRef
-  const routeMap = useRef<RouteMap>(collectRoute(children));
+  const routeMap = useMemo<RouteMap>(() => collectRoute(children), [children]);
   const [showComponent, setComponent] = useState<ReactNode>(null);
 
   const routeType = useMemo(() => {
@@ -40,14 +48,26 @@ export const Routes = memo(({ hash, history, children }: RoutesProps) => {
 
   useDidMount(() => {
     __routeMap.type = routeType;
+    matchRoutes();
   });
 
   const matchRoutes = useCallback(
     (current = "") => {
-      const location = current || getLocation(routeType);
-      if (!isCorrect(location) || !isMatchedRoute(location, routeMap.current))
-        return;
-      return routeMap.current[location]?.component;
+      const location = (current || getLocation(routeType)).toLowerCase();
+      if (!isCorrect(location) || !isMatchedRoute(location, routeMap)) return;
+
+      const { index, replace, title, component, caseSensitive, pathTemp } =
+        routeMap[location];
+
+      if (!isCaseSensitive(caseSensitive, location, pathTemp)) return;
+
+      setLocation({
+        title,
+        replace,
+        path: location,
+        isHash: routeType === "hash",
+      });
+      setComponent(component);
     },
     [routeType, routeMap]
   );
@@ -65,8 +85,10 @@ const collectRoute = (_nodes: RoutesNode): RouteMap => {
 
     if (!validProps(path, component)) return;
 
-    routes[path] = {
-      path,
+    const newPath = path.toLowerCase();
+    routes[newPath] = {
+      path: newPath,
+      pathTemp: path,
       title,
       component,
       index: index || false,
