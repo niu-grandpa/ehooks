@@ -56,8 +56,10 @@ export const Routes = memo(({ hash, history, children }: RoutesProps) => {
       const location = (current || getLocation(routeType)).toLowerCase();
       if (!isCorrect(location) || !isMatchedRoute(location, routeMap)) return;
 
+      const route = routeMap[location];
+      if (!route) return;
       const { index, replace, title, component, caseSensitive, pathTemp } =
-        routeMap[location];
+        route;
 
       if (!isCaseSensitive(caseSensitive, location, pathTemp)) return;
 

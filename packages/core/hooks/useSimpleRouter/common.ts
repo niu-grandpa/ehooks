@@ -40,7 +40,7 @@ export const checkLocation = {
     return true;
   },
   isMatchedRoute(path: string, obj: RouteMap) {
-    if (!(path in obj)) {
+    if (path && path !== "/" && !(path in obj)) {
       console.warn(`[useSimpleRouter] No routes matched location "${path}"`);
       return false;
     }
