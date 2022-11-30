@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { CallbackWithNoArguments } from "../types";
 import { useDidMount } from "./useDidMount";
+import { useDidUpdate } from "./useDidUpdate";
 import { useFreshRef } from "./useFreshRef";
 import { useWillUnmount } from "./useWillUnmount";
 
@@ -12,7 +13,7 @@ import { useWillUnmount } from "./useWillUnmount";
  * @param {Function} callback 定时器执行的回调
  * @param {number} timeout 调用的时间间隔（毫秒）
  * @param {boolean} when 是否执行该 hook
- * @param {boolean} immediate 是否立即执行定时器回调
+ * @param {boolean} immediate 是否立即执行一次定时器回调
  */
 export function useTimer(
   type: "timeout" | "interval",
@@ -33,11 +34,14 @@ export function useTimer(
 
   useDidMount(() => {
     intervalRef.current = callback;
+  });
+
+  useDidUpdate(() => {
     if (when) {
       immediate && timerHandler();
       timer = window[timerType](timerHandler, timeout);
     }
-  });
+  }, [when, immediate, timer, timerHandler, timerType]);
 
   useWillUnmount(() => {
     window.clearInterval(timer);
