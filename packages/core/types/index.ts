@@ -9,10 +9,6 @@ export type ReactElm = ReactElement | JSX.Element | ReactNode | string | number;
 export type RefElementOrNull<T> = T | null;
 
 export type ListenerOptions =
-  | boolean
-  | {
-      capture?: boolean;
-      once?: boolean;
-      passive?: boolean;
-      signal?: AbortSignal;
-    };
+  | AddEventListenerOptions
+  | EventListenerOptions
+  | boolean;
