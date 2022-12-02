@@ -34,7 +34,7 @@ export function useEventListenerRef(
     return () => {
       element?.removeEventListener(eventName, callbackFresh, listenerOptions);
     };
-  });
+  }, [element, eventName, callbackFresh, listenerOptions]);
 
   return setElementRef;
 }
