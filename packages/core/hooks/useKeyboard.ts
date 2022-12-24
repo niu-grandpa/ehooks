@@ -10,15 +10,28 @@ type KeyEventTypes = "keyup" | "keydown" | "keypress";
 type KeyboardEventHandler = (event: KeyboardEvent) => void;
 
 type Options = {
+  /**
+   * 键盘事件类型
+   */
   eventTypes?: KeyEventTypes[];
+  /**
+   * 是否为目标元素添加键盘监听事件
+   */
   target?: RefObject<HTMLElement>;
-  when?: boolean;
-  useLayoutEffect?: boolean;
+  /**
+   * 是否开启事件监听
+   */
+  isActive?: boolean;
+  /**
+   * 是否使用useLayoutEffect函数添加事件监听
+   * @default useEffect
+   */
+  isLayoutEffect?: boolean;
 };
 
 const defaultOptions: Options = {
-  when: true,
-  useLayoutEffect: false,
+  isActive: true,
+  isLayoutEffect: false,
   eventTypes: ["keydown"],
 };
 
@@ -42,9 +55,9 @@ export function useKeyboard(
     [defaultOptions, options]
   );
 
-  const { when, target, eventTypes, useLayoutEffect } = internalOptions;
+  const { isActive, target, eventTypes, isLayoutEffect } = internalOptions;
 
-  const useEffectToRun = useLayoutEffect ? useIsomorphicEffect : useEffect;
+  const useEffectToRun = isLayoutEffect ? useIsomorphicEffect : useEffect;
 
   const callbackRef = useFreshTick(callback);
 
@@ -69,7 +82,7 @@ export function useKeyboard(
   );
 
   const bindEvent = useCallback(() => {
-    if (when && typeof window !== "undefined") {
+    if (isActive && typeof window !== "undefined") {
       if (!target) return;
       const elem = target.current;
       setEventsByloop("addEventListener", elem);
@@ -82,7 +95,7 @@ export function useKeyboard(
         setEventsByloop("removeEventListener", window);
       };
     }
-  }, [when, target, setEventsByloop]);
+  }, [isActive, target, setEventsByloop]);
 
   useEffectToRun(() => {
     const cleanup = bindEvent();

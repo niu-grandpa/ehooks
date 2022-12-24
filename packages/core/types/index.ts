@@ -11,4 +11,10 @@ export type RefElementOrNull<T> = T | null;
 export type ListenerOptions =
   | AddEventListenerOptions
   | EventListenerOptions
-  | boolean;
+  | boolean
+  | {
+      capture?: boolean;
+      once?: boolean;
+      passive?: boolean;
+      signal?: AbortSignal;
+    };
