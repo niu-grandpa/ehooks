@@ -8,15 +8,15 @@ import { useIsomorphicEffect } from "./useIsomorphicEffect";
  * @description 为全局对象 Window 或 Document 添加事件监听器
  *
  * @param {Window | Document} globalObject 全局对象
- * @param {string} eventName 事件名
+ * @param {WindowEventMap} eventName 事件名
  * @param {Function} callback 事件监听函数
  * @param {ListenerOptions} listenerOptions 监听器选项
  * @param {boolean} isActive 是否激活事件监听
- * @param {boolean} isLayoutEffect  是否使用 useLayoutEffect 为对象添加事件，默认为不使用
+ * @param {boolean} isLayoutEffect  是否使用 useLayoutEffect 为对象添加事件，默认useEffect
  */
 export function useGlobalObjectEventListener<T extends Window | Document>(
   globalObject: T,
-  eventName: string,
+  eventName: keyof WindowEventMap,
   callback: EventListener,
   listenerOptions: ListenerOptions = {},
   isActive: boolean = true,
