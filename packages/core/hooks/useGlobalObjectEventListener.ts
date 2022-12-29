@@ -43,5 +43,5 @@ export function useGlobalObjectEventListener<T extends Window | Document>(
       );
     }
     return noop;
-  }, []);
+  }, [globalObject, eventName, listener, listenerOptions]);
 }
