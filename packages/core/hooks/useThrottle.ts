@@ -1,59 +1,46 @@
 import { noop } from "@/../utils";
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { CallbackWithArguments, UnknownFunction } from "../types";
-import { useDidMount } from "./useDidMount";
+import { useDidUpdate } from "./useDidUpdate";
+import { useFreshRef } from "./useFreshRef";
 import { useWillUnmount } from "./useWillUnmount";
 
 /**
  * useThrottle
- *
- * @description 函数节流。在n秒后执行事件函数，稀释函数执行频率。
- *
- * ```ts
- * const fn = useThrottle((a, b) => { console.log(a + b); }, 200);
- * setInterval(() => { fn(1, 2); }, 200);
- * ```
+ * @description 回调函数会在定时结束后执行，延时期间确保函数不会重复执行
+ * @param {Function} callback 节流函数
+ * @param {number} delay 节流延时，单位ms
  */
-export function useThrottle<T extends CallbackWithArguments>(
-  this: any,
-  callback: T,
-  wait?: number
-) {
-  const that = useRef<any>(this);
-  const timerId = useRef<NodeJS.Timeout | null>(null);
-  const throttleFn = useRef<UnknownFunction | null>(null);
+export function useThrottle<T>(
+  callback: CallbackWithArguments<T>,
+  delay: number = 200
+): [boolean, CallbackWithArguments<T>] {
+  const [ready, setReady] = useState(false);
+  const timerRef = useFreshRef<number | null>(null);
 
-  if (typeof callback !== "function") {
-    throw TypeError("expected is a function!");
-  }
+  const throttleFunc = useCallback(
+    (...args: T[]) => {
+      if (!ready) return;
+      callback(...args);
+      setReady(false);
+    },
+    [ready]
+  );
 
-  const declareThrottleFn = () => {
-    throttleFn.current = useCallback(
-      function () {
-        if (timerId.current) return;
-        const args = arguments;
-        timerId.current = setTimeout(() => {
-          clearTimer();
-          callback.apply(that.current, args);
-        }, wait || 200);
-      },
-      [timerId.current]
-    );
-  };
-
-  const clearTimer = useCallback(() => {
-    if (!timerId.current) return;
-    clearTimeout(timerId.current as unknown as number);
-    timerId.current = null;
-  }, [timerId.current]);
-
-  useDidMount(declareThrottleFn);
+  useDidUpdate(() => {
+    if (!ready) {
+      timerRef.current = window.setTimeout(() => {
+        setReady(true);
+      }, delay);
+    }
+  }, [ready]);
 
   useWillUnmount(() => {
-    that.current = null;
-    throttleFn.current = null;
-    clearTimer();
+    if (timerRef.current) {
+      window.clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
   });
 
-  return throttleFn.current || noop;
+  return useMemo(() => [ready, throttleFunc], [ready, throttleFunc]);
 }
