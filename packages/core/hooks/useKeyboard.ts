@@ -5,11 +5,11 @@ import { useIsomorphicEffect } from "./useIsomorphicEffect";
 
 type Keys = (string | number)[] | string | number;
 
-type KeyEventTypes = "keyup" | "keydown" | "keypress";
+export type KeyEventTypes = "keyup" | "keydown" | "keypress";
 
-type KeyboardEventHandler = (event: KeyboardEvent) => void;
+export type KeyboardEventHandler = (event: KeyboardEvent) => void;
 
-type Options = {
+export type Options = {
   /**
    * 键盘事件类型
    */
